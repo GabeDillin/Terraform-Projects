@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////
-//
-//  Module to provision Azure Kubernetes Service
-//
+//                                               //
+//  Module to provision Azure Kubernetes Service //
+//                                               //
 ///////////////////////////////////////////////////
 
 
@@ -19,15 +19,15 @@ data "azurerm_subnet" "AppGw" {
 }
 
 data "azurerm_private_dns_zone" "akszone" {
-  provider             = azurerm.hub
-  name                 = "privatelink.westus2.azmk8s.io"
+  provider             = azurerm.xxxxx
+  name                 = "privatelink.xxxxx.xxxx.io"
   resource_group_name  = var.dns_zone_rg
 }
 
 //retrieve diagnostics log workspace info 
 data "azurerm_log_analytics_workspace" "infralaw01" {
   name                 = "devinfralaw01"
-  resource_group_name  = "${substr(var.aks_cluster_name, 0, 3)}-infra-sysmgmt-rg"
+  resource_group_name  = "${substr(var.aks_cluster_name, 0, 3)}-xxxxx"
 }
 
 //create the user-assigned identity for the AKS private cluster
@@ -70,7 +70,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
   }
 
   # oms_agent {
-  #   log_analytics_workspace_id = data.azurerm_log_analytics_workspace.infralaw01.id
+  #   log_analytics_workspace_id = data.azurerm_log_analytics_workspace.xxxxx.id
   #   msi_auth_for_monitoring_enabled = true
   # }
 
@@ -177,7 +177,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "user" {
 resource "azurerm_monitor_diagnostic_setting" "diag_aks" {
   name                           = "DiagnosticsSettings"
   target_resource_id             = azurerm_kubernetes_cluster.aks.id
-  log_analytics_workspace_id     = data.azurerm_log_analytics_workspace.infralaw01.id
+  log_analytics_workspace_id     = data.azurerm_log_analytics_workspace.xxxx.id
   log_analytics_destination_type = "Dedicated"
 
   enabled_log {
