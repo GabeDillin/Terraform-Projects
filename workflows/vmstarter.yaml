@@ -1,0 +1,41 @@
+name: Start VMs
+
+# Schedule to run at 7:00 AM PST on weekdays
+on:
+  # push:
+  #   paths:
+  #     - '.github/workflows/vmstarter.yaml'
+  schedule:
+    - cron: '0 14 * * 1-5'  # Runs at 7:00 AM PST (3:00 PM UTC) Monday to Friday
+
+# Optional: Manually trigger the workflow from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  start-vms:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Log in to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Start all VMs in specified resource groups
+        env:
+          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          RESOURCE_GROUPS: 'resource group names'  # Add resource group names here
+        run: |
+          for resource_group in $RESOURCE_GROUPS; do
+            # Get all VM names in the current resource group
+            vms=$(az vm list --resource-group $resource_group --query '[].name' -o tsv)
+
+            # Start each VM except 'devinfrarunner02'
+            for vm in $vms; do
+              echo "Starting VM: $vm in $resource_group"
+              az vm start --resource-group $resource_group --name "$vm"
+            done
+          done
