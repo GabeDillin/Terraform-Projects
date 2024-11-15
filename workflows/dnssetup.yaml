@@ -1,0 +1,35 @@
+name: DNSSetup
+
+on:
+  workflow_dispatch:
+
+jobs:
+  InstallDNS:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Copy and Run DNS Scripts on Jumpbox that does DNS
+      run: |
+        $password = ConvertTo-SecureString ${{ secrets.WINDOWS_VM_PASSWORD }} -AsPlainText -Force
+        $cred = New-Object System.Management.Automation.PSCredential(${{ secrets.WINDOWS_VM_USERNAME }}, $password)
+        
+        # Create a PowerShell session to the remote machine
+        $session = New-PSSession -ComputerName ${{ secrets.JBOX01WIN_IP }} -Credential $cred
+        
+        # Copy and run the scripts
+        $scripts = @(
+            @{ Source = "path\to\script\dnsforward.ps1"; Destination = "C:\temp\dnsforward.ps1" }
+            @{ Source = "path\to\script\DnsConditionalForwardingZones.ps1"; Destination = "C:\temp\DnsConditionalForwardingZones.ps1" }
+        )
+        
+        foreach ($script in $scripts) {
+            Copy-Item -Path $script.Source -Destination $script.Destination -ToSession $session
+            Invoke-Command -Session $session -ScriptBlock { & $using:script.Destination }
+        }
+        
+        # Clean up
+        Remove-PSSession -Session $session
+      shell: pwsh
